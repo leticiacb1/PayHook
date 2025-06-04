@@ -28,5 +28,20 @@ See more, [here](https://www.scala-sbt.org/sbt-native-packager/introduction.html
 
 ```bash
 $ cd webhook/
+$ sbt clean compile
 $ sbt run
 ```
+
+#### After a dependence add or update
+
+Change on file `webhook/project/Dependencies.scala` and in `webhook/build.sbt` :
+
+```bash
+$ cd webhook/
+$ sbt reload
+$ sbt update
+```
+
+References:
+
+https://index.scala-lang.org/swagger-akka-http/swagger-akka-http
