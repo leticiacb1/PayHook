@@ -1,6 +1,42 @@
 ## 💰  PayHook
 
 
+### Description
+
+The project aims to integrate a payment gateway into an existing web commerce system. 
+
+The chosen gateway uses a Webhook-based architecture, where a POST request with payment details is automatically sent to a configured webhook URL upon payment confirmation (e.g., via PayPal or MercadoPago).
+
+> [!NOTE]
+> 
+> A webhook is a communication mechanism between systems that allows one server to automatically notify another when a specific event occurs, eliminating the need for constant polling. Technically, it is an HTTP request (usually POST) sent to a preconfigured endpoint triggered by an event.
+>
+
+<img src="media/Webhook.png" width="600">
+
+
+Format of the payload that the webhook will receive (POST) for validation :
+
+```bash
+{ 
+  "event": "payment_success",
+  "transaction_id": "abc123",
+  "amount": 49.90,
+  "currency": "BRL",
+  "timestamp": "2025-05-11T16:00:00Z" 
+}  
+```
+
+Expected handling by the webhook :
+
+| Transaction Condition                         | Return Status | Observation                                      |
+| --------------------------------------------- | ------------- | ------------------------------------------------ |
+| Valid transaction                             | 200           | Make a request to the `/confirmation` route      |
+| Contains incorrect information                | Not 400       | Cancel the transaction by making a request       |
+| Missing information (except `transaction_id`) | -             | Cancel the transaction by making a request       |
+| Invalid token                                 | -             | This is a fake transaction and should be ignored |
+
+
 ### Dependencies
 
 #### Install Scala and Package Manager
@@ -30,6 +66,8 @@ See more, [here](https://www.scala-sbt.org/sbt-native-packager/introduction.html
 $ cd webhook/
 $ sbt clean compile
 $ sbt run
+
+# Access : http://localhost:8080/docs
 ```
 
 #### After a dependence add or update
