@@ -80,6 +80,30 @@ $ sbt reload
 $ sbt update
 ```
 
+For run the tests:
+
+```bash
+$ cd webhook/
+$ python3 -m venv venv
+$ pip install -r requirements.txt
+
+# --- Run tests ---
+
+# Terminal 1
+$ sbt clean compile
+$ sbt run
+
+# Terminal 2 
+$ cd src/test/python/
+$ python3 test_webhook.py
+```
+
 References:
 
 https://index.scala-lang.org/swagger-akka-http/swagger-akka-http
+
+https://doc.akka.io/libraries/akka-http/current/server-side/index.html
+
+https://github.com/pjfanning/swagger-akka-http-sample/tree/main
+
+https support: https://doc.akka.io/libraries/akka-http/current/server-side/server-https-support.html

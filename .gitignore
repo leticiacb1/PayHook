@@ -1,3 +1,4 @@
+# --- SBT / Scala ---
 build/
 .classpath
 .project
@@ -15,3 +16,6 @@ out
 
 webhook/.bsp/
 webhook/target/
+
+# --- Python ---
+webhook/venv/
