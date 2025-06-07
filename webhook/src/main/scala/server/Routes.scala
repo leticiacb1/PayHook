@@ -49,10 +49,12 @@ class Routes {
         payload => {
           val validation = PaymentValidator.validate(payload)
 
-          if(validation.isValid)
+          if(validation.isValid) {
             complete(StatusCodes.OK, "✅ Payment accepted")
-          else
-            complete(StatusCodes.BadRequest, s"❌ Invalid payment data : ${validation.errors}")
+          } else {
+            val errorMessage = (validation.errors).map(err => s"- $err").mkString("\n")
+            complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
+          }
         }
       }
     }

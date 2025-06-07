@@ -29,7 +29,7 @@ object PaymentValidator{
     if (!acceptedEvents.contains(event)) Seq(s"Invalid event: $event") else Seq.empty
 
   private def validateAmount(amount: Double): Seq[String] =
-    if (!(amount <= minimumAmount)) Seq(s"Amount must be positive: $amount") else Seq.empty
+    if (!(amount > minimumAmount)) Seq(s"Amount must be positive: $amount") else Seq.empty
 
   private def validateCurrency(currency: String): Seq[String] =
     if (currency.trim.length != 3) Seq("Currency must be a 3-letter.") else Seq.empty
