@@ -1,6 +1,6 @@
 import Dependencies._
 
-ThisBuild / scalaVersion     := "2.13.12"
+ThisBuild / scalaVersion     := "2.13.13"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "com.example"
 ThisBuild / organizationName := "example"
@@ -29,6 +29,11 @@ lazy val root = (project in file("."))
       "com.lihaoyi" %% "scalasql" % "0.1.8",
       "org.xerial" % "sqlite-jdbc" % "3.43.0.0",
       "org.slf4j" % "slf4j-simple" % "2.0.9",
+      "com.softwaremill.sttp.client3" %% "core" % "3.9.0",
+      "com.softwaremill.sttp.client3" %% "circe" % "3.9.0",
+      "io.circe" %% "circe-core" % "0.14.7",
+      "io.circe" %% "circe-generic" % "0.14.7",
+      "io.circe" %% "circe-parser" % "0.14.7",
       munit % Test
     )
   )

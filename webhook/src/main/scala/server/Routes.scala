@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media._
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 
-
 import jakarta.ws.rs._
 
 import model.JsonSupport.paymentFormat
@@ -25,6 +24,8 @@ import model.PayloadValidation
 import script.PaymentValidator
 
 import storage.Storage
+
+import store.StoreSite
 
 class Routes {
   @POST
@@ -49,8 +50,11 @@ class Routes {
     post {
       entity(as[PaymentPayload]) {
         payload => {
+
+          println(s" [INFO] Recived payload =  $payload")
+
           val validation = PaymentValidator.validate(payload)
-          val payment = Storage.get(payload.transactionId)
+          val payment = Storage.get(payload.transaction_id)
 
           payment match {
             case Some(_) =>
@@ -59,12 +63,21 @@ class Routes {
               if(validation.isValid ) {
                 // New payment registration
                 Storage.insert(
-                  transactionId = payload.transactionId, event = payload.event,
+                  transactionId = payload.transaction_id, event = payload.event,
                   amount = payload.amount, currency = payload.currency, timestamp = payload.timestamp
                 )
-                println(s"\n [INFO] Payment(transction_id = ${payload.transactionId}) add to database")
+
+                // Uncomment (line 72) only when running the python3 test_webhook.py
+                // Send confirmaiton to store site
+                StoreSite.post(payload, StoreSite.confirmation_route)
+
+                println(s"\n [INFO] Payment(transction_id = ${payload.transaction_id}) add to database")
                 complete(StatusCodes.OK, "✅ Payment accepted")
               } else {
+                // Uncomment (line 80) only when running the python3 test_webhook.py
+                // Send cancellation to store site
+                StoreSite.post(payload, StoreSite.cancellation_route)
+
                 // Invalid Payload
                 val errorMessage = (validation.errors).map(err => s"- $err").mkString("\n")
                 complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")

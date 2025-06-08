@@ -38,7 +38,7 @@ def run_server():
 async def load_args():
     event = sys.argv[1] if len(sys.argv) > 1 else "payment_success"
     transaction_id = sys.argv[2] if len(sys.argv) > 2 else "abc123"
-    amount = sys.argv[3] if len(sys.argv) > 3 else "49.90"
+    amount = sys.argv[3] if len(sys.argv) > 3 else 49.90
     currency = sys.argv[4] if len(sys.argv) > 4 else "BRL"
     timestamp = sys.argv[5] if len(sys.argv) > 5 else "2023-10-01T12:00:00Z"
     token = sys.argv[6] if len(sys.argv) > 6 else "meu-token-secreto"
@@ -65,7 +65,9 @@ async def test_webhook(url, headers, data):
     i = 0  # Contador de testes bem-sucedidos
 
     # Teste 1: fluxo correto
+    print(data)
     response = requests.post(url, headers=headers, data=json.dumps(data))
+    print(response)
     await asyncio.sleep(1)  # Aguarda o webhook chamar /confirmar
     if response.status_code == 200 and data["transaction_id"] in confirmations:
         i += 1
