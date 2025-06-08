@@ -14,7 +14,7 @@ object PaymentValidator{
 
   def validate(payload: PaymentPayload): PayloadValidation = {
     val errors : Seq[String] = validateEvent(payload.event) ++
-                              validateTransactionId(payload.transaction_id) ++
+                              validateTransactionId(payload.transactionId) ++
                               validateAmount(payload.amount) ++
                               validateCurrency(payload.currency) ++
                               validateTimestamp(payload.timestamp)

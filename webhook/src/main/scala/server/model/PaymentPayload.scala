@@ -2,8 +2,8 @@ package model
 
 import spray.json.DefaultJsonProtocol
 
-final case class PaymentPayload(event: String,
-                                transaction_id: String,
+final case class PaymentPayload(transactionId: String,
+                                event: String,
                                 amount: Double,
                                 currency: String,
                                 timestamp: String)

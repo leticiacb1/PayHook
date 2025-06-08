@@ -24,6 +24,8 @@ import model.PayloadValidation
 
 import script.PaymentValidator
 
+import storage.Storage
+
 class Routes {
   @POST
   @Path("/webhook/payment")
@@ -48,12 +50,24 @@ class Routes {
       entity(as[PaymentPayload]) {
         payload => {
           val validation = PaymentValidator.validate(payload)
+          val payment = Storage.get(payload.transactionId)
 
-          if(validation.isValid) {
-            complete(StatusCodes.OK, "✅ Payment accepted")
-          } else {
-            val errorMessage = (validation.errors).map(err => s"- $err").mkString("\n")
-            complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
+          payment match {
+            case Some(_) =>
+              complete(StatusCodes.BadRequest, "❌ Transaction already registered")
+            case None =>
+              if(validation.isValid ) {
+                // New payment registration
+                Storage.insert(
+                  transactionId = payload.transactionId, event = payload.event,
+                  amount = payload.amount, currency = payload.currency, timestamp = payload.timestamp
+                )
+                complete(StatusCodes.OK, "✅ Payment accepted")
+              } else {
+                // Invalid Payload
+                val errorMessage = (validation.errors).map(err => s"- $err").mkString("\n")
+                complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
+              }
           }
         }
       }

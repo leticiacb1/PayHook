@@ -106,4 +106,8 @@ https://doc.akka.io/libraries/akka-http/current/server-side/index.html
 
 https://github.com/pjfanning/swagger-akka-http-sample/tree/main
 
+https://medium.com/rahasak/sqlite-scala-client-with-slick-8b122b334b39
+
+https://github.com/com-lihaoyi/scalasql/blob/main/scalasql/test/src/example/SqliteExample.scala
+
 https support: https://doc.akka.io/libraries/akka-http/current/server-side/server-https-support.html
