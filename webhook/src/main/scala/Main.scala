@@ -30,7 +30,8 @@ object Main extends App {
   // Server localhost:8080
   val bindingFuture: Future[ServerBinding] = Http().newServerAt("localhost", 8080).bind(allRoutes)
 
-  println(" ✅ Swagger UI available at http://localhost:8080/docs")
+  println("\n ✅ Swagger UI available at http://localhost:8080/docs")
   StdIn.readLine()
+  Storage.close()
   system.terminate()
 }

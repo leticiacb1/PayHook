@@ -98,6 +98,34 @@ $ cd src/test/python/
 $ python3 test_webhook.py
 ```
 
+Check temporary data saved by the webhook about payments:
+
+1. Install sqlite3 : https://www.tutorialspoint.com/sqlite/sqlite_installation.htm
+
+```bash
+$ cd webhook/
+$ sqlite3 src/main/scala/server/data/payment.db
+   
+sqlite> .tables
+payment_table
+
+sqlite> SELECT * FROM payment_table;
+123|payment_success|29.9|BRL|teste
+```
+
+Invalid Payload example (see more about the validaiton rule on file `src/main/scala/server/script/validato/Validator.scala`):
+
+```bash
+{
+  "transactionId": "1234",       # If not already registered in db, is ok
+  "event": "payment_cancelled",  # Wrong event
+  "amount": 0,                   # Amount < 0 
+  "currency": "BRLS",            # currency.size != 3
+  "timestamp": "string"
+}
+```
+
+
 References:
 
 https://index.scala-lang.org/swagger-akka-http/swagger-akka-http

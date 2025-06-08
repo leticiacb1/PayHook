@@ -62,6 +62,7 @@ class Routes {
                   transactionId = payload.transactionId, event = payload.event,
                   amount = payload.amount, currency = payload.currency, timestamp = payload.timestamp
                 )
+                println(s"\n [INFO] Payment(transction_id = ${payload.transactionId}) add to database")
                 complete(StatusCodes.OK, "✅ Payment accepted")
               } else {
                 // Invalid Payload
