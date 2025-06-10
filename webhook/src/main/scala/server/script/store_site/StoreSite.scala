@@ -5,32 +5,40 @@ import sttp.client3._
 import sttp.client3.circe._
 import sttp.model._
 
-import model.PaymentPayload
+import spray.json._
+import model.{PaymentPayload, JsonSupport}
+import JsonSupport._
 
 object StoreSite {
 
-  val url: String = "http://127.0.0.1:5001"           // test_webhook.py definition
-  val confirmation_route: String = "/confirmar"
-  val cancellation_route: String = "/cancelar"
+  val url: String = "http://localhost:5001"           // test_webhook.py definition
+  val confirmationRoute: String = "/confirmar"
+  val cancellationRoute: String = "/cancelar"
 
   def post(payload: PaymentPayload, route: String): Unit = {
     val backend = HttpURLConnectionBackend()
 
+    val jsonBody: String = payload.toJson.compactPrint
+    val fullUrl: String = s"$url$route"
+
     val request = basicRequest
-      .post(uri"$url$route")
-      .body(payload)
+      .post(uri"$fullUrl")
+      .body(jsonBody)
       .contentType("application/json")
-      .response(asJson[Json])             // expects JSON back
+      .response(asStringAlways)
 
     val response = request.send(backend)
 
-    response.body match {
-      case Right(json) =>
-        val status = json.hcursor.get[String]("status")
-        println(s"\n [INFO] StoreSite response status: $status")
+    println(s"[DEBUG] Status code: ${response.code}")
+    println(s"[DEBUG] Raw response body: ${response.body}")
 
-      case Left(error) =>
-        println(s"\n [ERROR] Failed to parse JSON response: $error")
+    if(response.code == StatusCode.Ok) {
+      println(s"[INFO] Successfully sent payload to $fullUrl")
+    } else {
+      println(s"[ERROR] Failed to send payload to $fullUrl: ${response.body}")
     }
   }
+
 }
+
+

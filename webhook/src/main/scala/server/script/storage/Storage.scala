@@ -38,7 +38,7 @@ object Storage {
           CREATE TABLE payment_table (
             transaction_id VARCHAR(255) PRIMARY KEY,
             event VARCHAR(255),
-            amount DOUBLE,
+            amount VARCHAR(255),
             currency VARCHAR(3),
             timestamp VARCHAR(255)
           );""")
@@ -53,19 +53,24 @@ object Storage {
     }
   }
 
-  def insert(transactionId: String, event: String, amount: Double, currency: String, timestamp: String): Unit = {
+  def insert(transactionId: String, event: String, amount: String, currency: String, timestamp: String): Unit = {
     ensureInitialized()
+
+    println(s"\n [INFO] SqliteClient = ${sqliteClient} , transactionId = $transactionId, event = $event, amount = $amount, currency = $currency, timestamp = $timestamp")
     sqliteClient.transaction { db =>
-      db.run(
-        PaymentTable.insert.batched(_.transaction_id, _.event, _.amount, _.currency, _.timestamp)(
-          (transactionId, event, amount, currency, timestamp)
-        )
+      db.updateRaw(
+        s"""
+           INSERT INTO payment_table (transaction_id, event, amount, currency, timestamp)
+           VALUES (?, ?, ?, ?, ?)
+        """,
+        Seq(transactionId, event, amount, currency, timestamp)
       )
     }
   }
 
-  def get(transactionId: String) = {
+  def get(transactionId: String) = Future {
     ensureInitialized()
+    println(s"\n FIZ O GETTT ")
     sqliteClient.transaction {
       db =>
         db.run(PaymentTable.select

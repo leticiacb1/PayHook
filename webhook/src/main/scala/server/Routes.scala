@@ -1,5 +1,7 @@
 package server
 
+import scala.concurrent.Future
+
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.model.StatusCodes
@@ -20,12 +22,14 @@ import docs.PaymentDocs.operationDescription
 import docs.PaymentDocs.bodyDescription
 
 import model.PayloadValidation
+import model.PaymentTable
 
 import script.PaymentValidator
 
 import storage.Storage
 
 import store.StoreSite
+import scala.util.{Success, Failure}
 
 class Routes {
   @POST
@@ -48,41 +52,36 @@ class Routes {
   )
   def check_payment: Route = path("webhook" / "payment") {
     post {
-      entity(as[PaymentPayload]) {
-        payload => {
+      entity(as[PaymentPayload]) { payload =>
 
-          println(s" [INFO] Recived payload =  $payload")
+        println(s" [INFO] Received payload =  $payload")
 
-          val validation = PaymentValidator.validate(payload)
-          val payment = Storage.get(payload.transaction_id)
+        val validation = PaymentValidator.validate(payload)
+        println(s" [INFO] Validation =  $validation")
 
-          payment match {
-            case Some(_) =>
-              complete(StatusCodes.BadRequest, "❌ Transaction already registered")
-            case None =>
-              if(validation.isValid ) {
-                // New payment registration
-                Storage.insert(
-                  transactionId = payload.transaction_id, event = payload.event,
-                  amount = payload.amount, currency = payload.currency, timestamp = payload.timestamp
-                )
+        //val paymentFuture = Storage.get(payload.transaction_id)
+        //println(s" [INFO] Payment(transaction_id = ${payload.transaction_id}) in database =  $validation")
 
-                // Uncomment (line 72) only when running the python3 test_webhook.py
-                // Send confirmaiton to store site
-                StoreSite.post(payload, StoreSite.confirmation_route)
+        if (validation.isValid) {
+          Storage.insert(
+            transactionId = payload.transaction_id,
+            event = payload.event,
+            amount = payload.amount,
+            currency = payload.currency,
+            timestamp = payload.timestamp
+          )
+          println(s"\n [INFO] Payment(transaction_id = ${payload.transaction_id}) added to database")
 
-                println(s"\n [INFO] Payment(transction_id = ${payload.transaction_id}) add to database")
-                complete(StatusCodes.OK, "✅ Payment accepted")
-              } else {
-                // Uncomment (line 80) only when running the python3 test_webhook.py
-                // Send cancellation to store site
-                StoreSite.post(payload, StoreSite.cancellation_route)
+          // Optionally send confirmation here
+          StoreSite.post(payload, StoreSite.confirmationRoute)
 
-                // Invalid Payload
-                val errorMessage = (validation.errors).map(err => s"- $err").mkString("\n")
-                complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
-              }
-          }
+          complete(StatusCodes.OK, "✅ Payment accepted")
+        } else {
+          // Optionally send cancellation here
+          StoreSite.post(payload, StoreSite.cancellationRoute)
+
+          val errorMessage = validation.errors.take(1).map(err => s"- $err").mkString("\n")
+          complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
         }
       }
     }

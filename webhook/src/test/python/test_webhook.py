@@ -7,6 +7,8 @@ from fastapi import FastAPI, Request  # Web framework para criar os endpoints lo
 import uvicorn           # Para rodar o servidor FastAPI
 from threading import Thread  # Para rodar o servidor em paralelo ao teste
 
+import time
+
 # Criação da aplicação FastAPI
 app = FastAPI()
 
@@ -38,7 +40,7 @@ def run_server():
 async def load_args():
     event = sys.argv[1] if len(sys.argv) > 1 else "payment_success"
     transaction_id = sys.argv[2] if len(sys.argv) > 2 else "abc123"
-    amount = sys.argv[3] if len(sys.argv) > 3 else 49.90
+    amount = sys.argv[3] if len(sys.argv) > 3 else "49.90"
     currency = sys.argv[4] if len(sys.argv) > 4 else "BRL"
     timestamp = sys.argv[5] if len(sys.argv) > 5 else "2023-10-01T12:00:00Z"
     token = sys.argv[6] if len(sys.argv) > 6 else "meu-token-secreto"
@@ -129,11 +131,11 @@ async def test_webhook(url, headers, data):
 
 # Bloco principal que inicia o servidor local e executa os testes
 if __name__ == "__main__":
-    # Roda o servidor local de /confirmar e /cancelar em background
+    #Roda o servidor local de /confirmar e /cancelar em background
     server_thread = Thread(target=run_server, daemon=True)
     server_thread.start()
 
-    # Aguarda o servidor estar pronto
+    #Aguarda o servidor estar pronto
     asyncio.run(asyncio.sleep(1))
 
     # Carrega argumentos e executa os testes

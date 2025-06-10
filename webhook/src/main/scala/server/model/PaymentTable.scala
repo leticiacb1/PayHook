@@ -5,7 +5,7 @@ import scalasql.Table
 case class PaymentTable[T[_]](
                                   transaction_id: T[String],
                                   event: T[String],
-                                  amount: T[Double],
+                                  amount: T[String],
                                   currency: T[String],
                                   timestamp: T[String]
                                 )

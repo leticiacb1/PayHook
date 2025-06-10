@@ -4,7 +4,7 @@ import spray.json.DefaultJsonProtocol
 
 final case class PaymentPayload(transaction_id: String,
                                 event: String,
-                                amount: Double,
+                                amount: String,
                                 currency: String,
                                 timestamp: String)
 
