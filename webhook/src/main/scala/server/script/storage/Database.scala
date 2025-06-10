@@ -12,7 +12,7 @@ import model.PaymentTable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Storage {
+object Database {
   // Ensure initialize
   private var initialized = false
 
@@ -53,30 +53,19 @@ object Storage {
     }
   }
 
-  def insert(transactionId: String, event: String, amount: String, currency: String, timestamp: String): Unit = {
+  def insert(transactionId: String, event: String, amount: String, currency: String, timestamp: String): Int = {
     ensureInitialized()
 
     println(s"\n [INFO] SqliteClient = ${sqliteClient} , transactionId = $transactionId, event = $event, amount = $amount, currency = $currency, timestamp = $timestamp")
     sqliteClient.transaction { db =>
-      db.updateRaw(
+      val rowsAffected = db.updateRaw(
         s"""
-           INSERT INTO payment_table (transaction_id, event, amount, currency, timestamp)
+           INSERT OR IGNORE INTO payment_table (transaction_id, event, amount, currency, timestamp)
            VALUES (?, ?, ?, ?, ?)
         """,
         Seq(transactionId, event, amount, currency, timestamp)
       )
-    }
-  }
-
-  def get(transactionId: String) = Future {
-    ensureInitialized()
-    println(s"\n FIZ O GETTT ")
-    sqliteClient.transaction {
-      db =>
-        db.run(PaymentTable.select
-                           .filter(_.transaction_id === transactionId)
-                           .take(1)
-               ).headOption
+      rowsAffected
     }
   }
 

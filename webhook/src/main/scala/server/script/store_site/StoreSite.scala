@@ -39,6 +39,25 @@ object StoreSite {
     }
   }
 
+  def postWrongBody(payload: String): Unit = {
+    val backend = HttpURLConnectionBackend()
+
+    // val jsonBody: String = payload.toJson.compactPrint
+    val fullUrl: String = s"$url$cancellationRoute"
+    println(s"[DEBUG] Wrong body: $payload")
+
+    val request = basicRequest
+      .post(uri"$fullUrl")
+      .body(payload)
+      .contentType("application/json")
+      .response(asStringAlways)
+
+    val response = request.send(backend)
+
+    println(s"[DEBUG] Status code: ${response.code}")
+    println(s"[DEBUG] Raw response body: ${response.body}")
+  }
+
 }
 
 

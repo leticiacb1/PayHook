@@ -26,10 +26,15 @@ import model.PaymentTable
 
 import script.PaymentValidator
 
-import storage.Storage
+import storage.Database
 
 import store.StoreSite
 import scala.util.{Success, Failure}
+
+import spray.json._
+import spray.json.DeserializationException
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Routes {
   @POST
@@ -51,38 +56,65 @@ class Routes {
     )
   )
   def check_payment: Route = path("webhook" / "payment") {
-    post {
-      entity(as[PaymentPayload]) { payload =>
+      post {
+        entity(as[String]) {
+          body =>
+            println(s" [INFO] Raw request body: $body")
 
-        println(s" [INFO] Received payload =  $payload")
+            try {
+              val payload = body.parseJson.convertTo[PaymentPayload]
 
-        val validation = PaymentValidator.validate(payload)
-        println(s" [INFO] Validation =  $validation")
+              println(s" [INFO] Parsed payload =  $payload")
 
-        //val paymentFuture = Storage.get(payload.transaction_id)
-        //println(s" [INFO] Payment(transaction_id = ${payload.transaction_id}) in database =  $validation")
+                val validation = PaymentValidator.validate(payload);
+                println(s" [INFO] Validation =  $validation");
 
-        if (validation.isValid) {
-          Storage.insert(
-            transactionId = payload.transaction_id,
-            event = payload.event,
-            amount = payload.amount,
-            currency = payload.currency,
-            timestamp = payload.timestamp
-          )
-          println(s"\n [INFO] Payment(transaction_id = ${payload.transaction_id}) added to database")
+                val rowsAffected = Database.insert(
+                  transactionId = payload.transaction_id,
+                  event = payload.event,
+                  amount = payload.amount,
+                  currency = payload.currency,
+                  timestamp = payload.timestamp
+                );
 
-          // Optionally send confirmation here
-          StoreSite.post(payload, StoreSite.confirmationRoute)
+                if (validation.isValid && rowsAffected == 1) {
+                  Database.insert(
+                    transactionId = payload.transaction_id,
+                    event = payload.event,
+                    amount = payload.amount,
+                    currency = payload.currency,
+                    timestamp = payload.timestamp
+                  );
+                  println(s"\n [INFO] Payment(transaction_id = ${payload.transaction_id}) added to database");
 
-          complete(StatusCodes.OK, "✅ Payment accepted")
-        } else {
-          // Optionally send cancellation here
-          StoreSite.post(payload, StoreSite.cancellationRoute)
+                  // Optionally send confirmation here
+                  StoreSite.post(payload, StoreSite.confirmationRoute);
 
-          val errorMessage = validation.errors.take(1).map(err => s"- $err").mkString("\n")
-          complete(StatusCodes.BadRequest, s"❌ Invalid payment data : \n$errorMessage")
-        }
+                  complete(StatusCodes.OK, "✅ Payment accepted");
+                } else {
+                  var errorMessage: String = ""
+                  if (validation.isValid) {
+                    errorMessage = s"❌ Payment(transaction_id = ${payload.transaction_id}) already exists in database";
+                    println(s"\n [ERROR] $errorMessage");
+                  } else {
+                    val errors: String = validation.errors.take(1).map(err => s"- $err").mkString("\n");
+                    errorMessage = s"❌ Invalid payment data : \n$errorMessage";
+                    println(s"\n [ERROR] $errorMessage");
+                  }
+
+                  // Optionally send cancellation here
+                  StoreSite.post(payload, StoreSite.cancellationRoute);
+
+                  complete(StatusCodes.BadRequest, errorMessage);
+                }
+
+            } catch {
+              case ex: DeserializationException =>
+                println(s" [WARN] ❌ Malformed payload: ${ex.getMessage}")
+                StoreSite.postWrongBody(body)
+                // ✅ Explicit return
+                complete(StatusCodes.BadRequest, "❌ Invalid payment payload format")
+            }
       }
     }
   }

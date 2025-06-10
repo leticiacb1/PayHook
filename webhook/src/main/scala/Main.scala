@@ -12,7 +12,7 @@ import scala.io.StdIn
 import server.Routes
 import server.SwaggerDocService
 
-import storage.Storage
+import storage.Database
 
 object Main extends App {
   implicit val system: ActorSystem = ActorSystem("webhook-system")
@@ -25,13 +25,13 @@ object Main extends App {
   val allRoutes : Route = new Routes().route ~ SwaggerDocService.routes ~ swaggerUIRoute
 
   // Create database
-  Storage.initialize()
+  Database.initialize()
 
   // Server localhost:8080
   val bindingFuture: Future[ServerBinding] = Http().newServerAt("localhost", 8080).bind(allRoutes)
 
   println("\n ✅ Swagger UI available at http://localhost:8080/docs")
   StdIn.readLine()
-  Storage.close()
+  Database.close()
   system.terminate()
 }
