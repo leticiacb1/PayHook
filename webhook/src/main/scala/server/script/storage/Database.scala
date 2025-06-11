@@ -18,7 +18,7 @@ object Database {
 
   // Path to db data storage
   val dbPath = Paths.get("src", "main",  "scala", "server", "data", "payment.db")
-  println(s"\n [INFO] Using database file at $dbPath")
+  println(s"\n [DATABASE][INFO] Using database file at $dbPath")
 
   // SQLite JDBC data source object
   val dataSource = new SQLiteDataSource()
@@ -44,19 +44,17 @@ object Database {
           );""")
     }
     initialized = true
-    println(s"\n [INFO] Table payment_table created ")
+    println(s"\n [DATABASE][INFO] Table payment_table created ")
   }
 
   private def ensureInitialized(): Unit = {
     if (!initialized) {
-      throw new IllegalStateException("❌ Storage not initialized! Call Storage.initialize() before using.")
+      throw new IllegalStateException("\n [DATABASE][ERROR] Storage not initialized! Call Storage.initialize() before using.")
     }
   }
 
   def insert(transactionId: String, event: String, amount: String, currency: String, timestamp: String): Int = {
     ensureInitialized()
-
-    println(s"\n [INFO] SqliteClient = ${sqliteClient} , transactionId = $transactionId, event = $event, amount = $amount, currency = $currency, timestamp = $timestamp")
     sqliteClient.transaction { db =>
       val rowsAffected = db.updateRaw(
         s"""
@@ -70,7 +68,7 @@ object Database {
   }
 
   def close(): Unit = {
-    println("\n [INFO] Closing database connection.")
+    println("\n [DATABASE][INFO] Closing database connection.")
     initialized = false
     dataSource.getConnection.close()
   }

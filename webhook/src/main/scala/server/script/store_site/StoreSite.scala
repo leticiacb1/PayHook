@@ -16,10 +16,17 @@ object StoreSite {
   val cancellationRoute: String = "/cancelar"
 
   def post(payload: PaymentPayload, route: String): Unit = {
-    val backend = HttpURLConnectionBackend()
+    val jsonBody = payload.toJson.compactPrint
+    sendPost(jsonBody, route)
+  }
 
-    val jsonBody: String = payload.toJson.compactPrint
-    val fullUrl: String = s"$url$route"
+  def post(payload: String, route: String): Unit = {
+    sendPost(payload, route)
+  }
+
+  private def sendPost(jsonBody: String, route: String): Unit = {
+    val backend = HttpURLConnectionBackend()
+    val fullUrl = s"$url$route"
 
     val request = basicRequest
       .post(uri"$fullUrl")
@@ -28,36 +35,13 @@ object StoreSite {
       .response(asStringAlways)
 
     val response = request.send(backend)
-
-    println(s"[DEBUG] Status code: ${response.code}")
-    println(s"[DEBUG] Raw response body: ${response.body}")
-
     if(response.code == StatusCode.Ok) {
-      println(s"[INFO] Successfully sent payload to $fullUrl")
+      println(s"\n [STORE SITE][INFO] Successfully sent to $fullUrl")
     } else {
-      println(s"[ERROR] Failed to send payload to $fullUrl: ${response.body}")
+      println(s"\n [STORE SITE][ERROR] Failed to send to $fullUrl")
     }
+
   }
-
-  def postWrongBody(payload: String): Unit = {
-    val backend = HttpURLConnectionBackend()
-
-    // val jsonBody: String = payload.toJson.compactPrint
-    val fullUrl: String = s"$url$cancellationRoute"
-    println(s"[DEBUG] Wrong body: $payload")
-
-    val request = basicRequest
-      .post(uri"$fullUrl")
-      .body(payload)
-      .contentType("application/json")
-      .response(asStringAlways)
-
-    val response = request.send(backend)
-
-    println(s"[DEBUG] Status code: ${response.code}")
-    println(s"[DEBUG] Raw response body: ${response.body}")
-  }
-
 }
 
 

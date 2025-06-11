@@ -36,6 +36,8 @@ import spray.json.DeserializationException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import business.Business
+
 class Routes {
   @POST
   @Path("/webhook/payment")
@@ -55,69 +57,22 @@ class Routes {
       )
     )
   )
-  def check_payment: Route = path("webhook" / "payment") {
+  def route: Route = path("webhook" / "payment") {
       post {
         entity(as[String]) {
           body =>
-            println(s" [INFO] Raw request body: $body")
-
+            println(s"\n [ROUTES][INFO] Raw request body: $body")
             try {
               val payload = body.parseJson.convertTo[PaymentPayload]
-
-              println(s" [INFO] Parsed payload =  $payload")
-
-                val validation = PaymentValidator.validate(payload);
-                println(s" [INFO] Validation =  $validation");
-
-                val rowsAffected = Database.insert(
-                  transactionId = payload.transaction_id,
-                  event = payload.event,
-                  amount = payload.amount,
-                  currency = payload.currency,
-                  timestamp = payload.timestamp
-                );
-
-                if (validation.isValid && rowsAffected == 1) {
-                  Database.insert(
-                    transactionId = payload.transaction_id,
-                    event = payload.event,
-                    amount = payload.amount,
-                    currency = payload.currency,
-                    timestamp = payload.timestamp
-                  );
-                  println(s"\n [INFO] Payment(transaction_id = ${payload.transaction_id}) added to database");
-
-                  // Optionally send confirmation here
-                  StoreSite.post(payload, StoreSite.confirmationRoute);
-
-                  complete(StatusCodes.OK, "✅ Payment accepted");
-                } else {
-                  var errorMessage: String = ""
-                  if (validation.isValid) {
-                    errorMessage = s"❌ Payment(transaction_id = ${payload.transaction_id}) already exists in database";
-                    println(s"\n [ERROR] $errorMessage");
-                  } else {
-                    val errors: String = validation.errors.take(1).map(err => s"- $err").mkString("\n");
-                    errorMessage = s"❌ Invalid payment data : \n$errorMessage";
-                    println(s"\n [ERROR] $errorMessage");
-                  }
-
-                  // Optionally send cancellation here
-                  StoreSite.post(payload, StoreSite.cancellationRoute);
-
-                  complete(StatusCodes.BadRequest, errorMessage);
-                }
-
+              println(s"\n [ROUTES][INFO] Parsed payload =  $payload")
+              Business.process(payload)
             } catch {
               case ex: DeserializationException =>
-                println(s" [WARN] ❌ Malformed payload: ${ex.getMessage}")
-                StoreSite.postWrongBody(body)
-                // ✅ Explicit return
-                complete(StatusCodes.BadRequest, "❌ Invalid payment payload format")
+                println(s"\n [ROUTES][WARN] Malformed payload: ${ex.getMessage}")
+                StoreSite.post(body, StoreSite.cancellationRoute)
+                complete(StatusCodes.BadRequest, "Invalid payment payload format")
             }
       }
     }
   }
-
-  def route : Route = check_payment // ~ other_operation
 }
