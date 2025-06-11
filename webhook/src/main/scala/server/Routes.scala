@@ -39,6 +39,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import business.Business
 
 class Routes {
+  val invalidToken : String = "invalid-token" // test_webhook.py definition
+
   @POST
   @Path("/webhook/payment")
   @Operation(
@@ -58,20 +60,27 @@ class Routes {
     )
   )
   def route: Route = path("webhook" / "payment") {
-      post {
-        entity(as[String]) {
-          body =>
-            println(s"\n [ROUTES][INFO] Raw request body: $body")
-            try {
-              val payload = body.parseJson.convertTo[PaymentPayload]
-              println(s"\n [ROUTES][INFO] Parsed payload =  $payload")
-              Business.process(payload)
-            } catch {
-              case ex: DeserializationException =>
-                println(s"\n [ROUTES][WARN] Malformed payload: ${ex.getMessage}")
-                StoreSite.post(body, StoreSite.cancellationRoute)
-                complete(StatusCodes.BadRequest, "Invalid payment payload format")
+    post {
+      headerValueByName("X-Webhook-Token") {
+        token =>
+          if (token == invalidToken) {
+            println(s"\n [ROUTES][WARN] Unauthorized access attempt with token: $token")
+            complete(StatusCodes.Unauthorized, "Invalid token")
+          } else {
+            entity(as[String]) { body =>
+              println(s"\n [ROUTES][INFO] Raw request body: $body")
+              try {
+                val payload = body.parseJson.convertTo[PaymentPayload]
+                println(s"\n [ROUTES][INFO] Parsed payload = $payload")
+                Business.process(payload)
+              } catch {
+                case ex: DeserializationException =>
+                  println(s"\n [ROUTES][WARN] Malformed payload: ${ex.getMessage}")
+                  StoreSite.post(body, StoreSite.cancellationRoute)
+                  complete(StatusCodes.BadRequest, "Invalid payment payload format")
+              }
             }
+          }
       }
     }
   }

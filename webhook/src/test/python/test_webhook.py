@@ -108,6 +108,7 @@ async def test_webhook(url, headers, data):
         print("4. Webhook test failed: Token Invalido!")
 
     # Teste 5: payload vazio
+    headers["X-Webhook-Token"] = token  # Restaura token correto
     response = requests.post(url, headers=headers, data=json.dumps({}))
     if response.status_code != 200:
         i += 1
