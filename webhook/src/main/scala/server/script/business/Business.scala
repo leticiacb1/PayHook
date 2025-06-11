@@ -40,7 +40,7 @@ object Business {
   private  def confirm_payment(payload: PaymentPayload): Unit = {
     println(s"\n [BUSINESS][INFO] Payment(transaction_id = ${payload.transaction_id}) added to database");
 
-    // Optionally send confirmation
+    // Comment line to use Swagger UI:
     StoreSite.post(payload, StoreSite.confirmationRoute);
   }
 
@@ -50,11 +50,11 @@ object Business {
       errorMessage = s"Payment(transaction_id = ${payload.transaction_id}) already exists in database";
     } else {
       val errors: String = validation.errors.take(1).map(err => s"- $err").mkString("\n");
-      errorMessage = s"Invalid payment data : \n$errorMessage";
+      errorMessage = s"Invalid payment data : \n$errors";
     }
     println(s"\n [BUSINESS][ERROR] $errorMessage");
 
-    // Optionally send cancellation
+    // Comment line to use Swagger UI:
     StoreSite.post(payload, StoreSite.cancellationRoute);
 
     errorMessage

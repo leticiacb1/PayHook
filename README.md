@@ -92,8 +92,27 @@ Access url http://localhost:8080/docs and try it out !
 >
 > In the code, the **StoreSite** object (`src/main/scala/server/script/store_site/StoreSite.scala`) makes a request to a confirmation and cancellation API that is only available when we run the Python test.
 > 
-> When running the tests via the Swagger interface, these lines indicated an error.
+> When running the tests via the Swagger interface, comment lines : 
+> ```bash
+> # File : src/main/scala/server/script/business/Business.scala
+> ...
+> // Comment line to use Swagger UI:
+> StoreSite.post(payload, StoreSite.confirmationRoute);
+> ...
 > 
+> // Comment line to use Swagger UI:
+> StoreSite.post(payload, StoreSite.cancellationRoute);
+> 
+> ...
+> ```
+> ```bash
+> # File : src/main/scala/server/Routes.scala
+> ...
+> // Comment line to use Swagger UI:
+> StoreSite.post(body, StoreSite.cancellationRoute)
+> 
+> ...
+>```
 
 
 #### Run Python Tests

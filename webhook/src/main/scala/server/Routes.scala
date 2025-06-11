@@ -11,6 +11,10 @@ import io.swagger.v3.oas.annotations._
 import io.swagger.v3.oas.annotations.media._
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+
 
 import jakarta.ws.rs._
 
@@ -46,8 +50,18 @@ class Routes {
   @Operation(
     summary = operationSummary,
     description = operationDescription,
+    parameters = Array(
+      new Parameter(
+        name = "X-Webhook-Token",
+        in = ParameterIn.HEADER,
+        required = true,
+        description = "Authentication token to validate the webhook",
+        schema = new Schema(`type` = "string")
+      )
+    ),
     responses = Array(new ApiResponse(responseCode = "200", description = "Payment accepted"),
-                      new ApiResponse(responseCode = "400", description = "Invalid payment"))
+                      new ApiResponse(responseCode = "400", description = "Invalid payment"),
+                      new ApiResponse(responseCode = "401", description = "Unauthorized"))
   )
   @RequestBody(
     description = bodyDescription,
@@ -76,7 +90,10 @@ class Routes {
               } catch {
                 case ex: DeserializationException =>
                   println(s"\n [ROUTES][WARN] Malformed payload: ${ex.getMessage}")
+
+                  // Comment line to use Swagger UI:
                   StoreSite.post(body, StoreSite.cancellationRoute)
+
                   complete(StatusCodes.BadRequest, "Invalid payment payload format")
               }
             }
