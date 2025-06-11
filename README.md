@@ -18,7 +18,6 @@ The chosen gateway uses a Webhook-based architecture, where a POST request with 
 #### Valid Payload example
 
 ```bash
-# Example of a valid payload
 { 
   "event": "payment_success",
   "transaction_id": "abc123",
@@ -31,13 +30,13 @@ The chosen gateway uses a Webhook-based architecture, where a POST request with 
 #### Invalid Payload example
 
 ```bash
-{
-  "transactionId": "1234",       # If not already registered in db, is ok
-  "event": "payment_cancelled",  # Wrong event
-  "amount": 0,                   # Amount < 0 
-  "currency": "BRLS",            # currency.size != 3
-  "timestamp": "string"
-}
+{ 
+  "event": "payment_cancelled",      # Wrong event
+  "transaction_id": "abc123",        # If not already registered in db, is ok
+  "amount": "0.0",                   # Amount < 0
+  "currency": "BRLS",                # currency.size != 3
+  "timestamp": "2025-05-11T16:00:00Z" 
+}  
 ```
 
 See more ,about the validation rule, on file `src/main/scala/server/script/validato/Validator.scala`).

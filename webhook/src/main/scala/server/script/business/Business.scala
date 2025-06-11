@@ -49,7 +49,7 @@ object Business {
     if (validation.isValid) {
       errorMessage = s"Payment(transaction_id = ${payload.transaction_id}) already exists in database";
     } else {
-      val errors: String = validation.errors.take(1).map(err => s"- $err").mkString("\n");
+      val errors: String = validation.errors.map(err => s"- $err").mkString("\n");
       errorMessage = s"Invalid payment data : \n$errors";
     }
     println(s"\n [BUSINESS][ERROR] $errorMessage");
