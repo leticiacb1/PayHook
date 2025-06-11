@@ -168,6 +168,10 @@ sqlite> SELECT * FROM payment_table;
 5. [Scalasql Example](https://github.com/com-lihaoyi/scalasql/blob/main/scalasql/test/src/example/SqliteExample.scala)
 6. [Akka HTTP - Server HTTPS Support](https://doc.akka.io/libraries/akka-http/current/server-side/server-https-support.html)
 
+> **Transparency note**
+> 
+> Artificial intelligence tools were also used in the development of the project.
+
 <br>
 
 <div align="center">
